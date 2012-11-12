@@ -26,6 +26,15 @@ post '/' do
   @error = "Användarnamn eller lösenord matchade inte"
   haml :login
 end
+get '/reset' do
+  haml :reset
+end
+post '/reset' do
+  user = UserRepository.find_one(email: params[:email])
+  p user.reset_password!
+  UserRepository.save(user)
+  redirect '/'
+end
 get '/logout' do
   haml :logout
 end

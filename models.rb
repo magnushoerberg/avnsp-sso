@@ -33,6 +33,11 @@ class User < UserValues
     @password = Password.create(new_password)
     self.password_hash = password
   end
+  def reset_password!
+    new_password =  SecureRandom.hex(16)
+    self.password = new_password
+    new_password
+  end
   def authenticate(passwrd)
     if self.old_password_hash
       pwd_hashed = if self.old_password_hash.start_with? '*'

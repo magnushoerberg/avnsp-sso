@@ -26,6 +26,14 @@ post '/' do
   @error = "Användarnamn eller lösenord matchade inte"
   haml :login
 end
+get '/logout' do
+  haml :logout
+end
+post '/logout' do
+  session[:email] = nil
+  session[:uuid] = nil
+  redirect url('/')
+end
 
 helpers do
   def protect! 

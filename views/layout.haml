@@ -1,0 +1,10 @@
+!!!
+%html
+  %head
+    %title
+      AVNSP - SSO
+  %body
+    - if @error
+      .alert.alert-error
+        %p= @error
+    !=yield

@@ -1,0 +1,15 @@
+.page-header
+  %h1 Login
+%form{method: :post}
+  %fieldset
+    .control-group
+      %label.control-label Användarnamn
+      .controls
+        %input{type: :text, name: :username}
+    .control-group
+      %label.control-label Lösenord
+      .controls
+        %input{type: :password, name: :password}
+    .form-controls
+      %button.btn Logga in
+      %a{href: url('reset')} Glömt lösenordet?

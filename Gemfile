@@ -5,6 +5,7 @@ gem 'haml'
 gem 'mongo'
 gem 'bcrypt-ruby'
 gem 'bson_ext'
+gem 'mail'
 
 group :development do
   gem 'sinatra-contrib'

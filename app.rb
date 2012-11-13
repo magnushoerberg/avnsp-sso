@@ -43,7 +43,6 @@ post '/logout' do
   session[:uuid] = nil
   redirect url('/')
 end
-
 helpers do
   def protect! 
     halt redirect url '/' unless session[:email]

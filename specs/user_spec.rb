@@ -1,12 +1,8 @@
 require './models'
+require './specs/factories'
 describe User do
-  let(:email) { "test@example.com" }
-  let(:user) { User.new(email: email) }
+  let(:user) { CreateUser() }
 
-  it 'responds to email and uuid' do
-    user.email.should == email
-    user.uuid.should_not be_nil
-  end
   it 'has a password, that is hashed after it is set' do
     password = SecureRandom.hex(16)
     user.password = password
@@ -15,8 +11,7 @@ describe User do
     user.password_hash.should == password
   end
   it 'authenticates an old password, and then reset the old password hash' do
-    old_hash = [Digest::SHA1.hexdigest('old pass')].pack('H*')
-    user.old_password_hash = '*' + Digest::SHA1.hexdigest(old_hash)
+    user.old_password_hash = '*20f1875aba29acbbcda7360bf879936bd09c40d2'
     user.authenticate('old pass').should == true
     user.old_password_hash.should == nil
   end

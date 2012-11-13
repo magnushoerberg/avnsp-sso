@@ -19,8 +19,11 @@ post '/' do
   user = UserRepository.find_one(username: username)
   if user && user.authenticate(params[:password])
     UserRepository.save(user)
-    session[:email] = user.email
     session[:uuid] = user.uuid
+    session[:email] = user.email
+    session[:first_name] = user.first_name
+    session[:last_name] = user.last_name
+    session[:nickname] = user.nickname
     sign_and_return(params[:return_url])
   end
   @error = "Användarnamn eller lösenord matchade inte"
@@ -43,10 +46,12 @@ post '/logout' do
   session[:uuid] = nil
   redirect url('/')
 end
+
 get '/continue' do
   @user = UserRepository.find_one(uuid: session[:uuid])
   haml :details
 end
+
 helpers do
   def protect! 
     halt redirect url '/' unless session[:email]
@@ -55,23 +60,23 @@ helpers do
   def sign_and_return(return_url)
     halt redirect url('/continue') if return_url.nil? or return_url.empty?
     raise "SSO key is missing" unless ENV['SHARED_SSO_KEY']
-    user = UserRepository.find session[:id]
+    user = UserRepository.find_one(uuid: session[:uuid])
 
-    login = Login.new(user: user, return_url: return_url) if user
+    uuid              = session[:uuid]
+    email             = session[:email]
+    first_name        = session[:first_name]
+    last_name         = session[:last_name]
+    nickname          = session[:nickname]
 
-    uuid        = session[:uuid]
-    email       = session[:email]
-
-    time        = Time.now.to_i
-    msg         = "#{uuid}:#{time}:#{email}:#{name}:#{roles}"
-    sha1        = OpenSSL::Digest::Digest.new('sha1')
-    token       = OpenSSL::HMAC.hexdigest(sha1, ENV['SHARED_SSO_KEY'], msg)
+    time = Time.now.to_i
+    msg = [uuid, time, email, first_name, last_name, nickname].join(":")
+    sha1 = OpenSSL::Digest::Digest.new('sha1')
+    token = OpenSSL::HMAC.hexdigest(sha1, ENV['SHARED_SSO_KEY'], msg)
     return_host = return_url.split('/')[0..2].join('/')
     return_path = ["", return_url.split('/')[3..-1]].join('/')
     data = { uuid: uuid, time: time, token: token,
       email: email, return_url: return_path}
-    query = data.
-      map { |k,v| k + "=" + URI.encode_www_form_component(v) }.join('&')
+    query = data.map { |k, v| "#{k}=#{URI.encode_www_form_component(v)}" }.join('&')
     halt redirect "#{return_host}/sso?#{query}"
   end
 end

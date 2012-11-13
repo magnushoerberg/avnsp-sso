@@ -1,0 +1,74 @@
+.page-header
+  %h1
+    -#if @user.has_avatar?
+      %img.img-rounded.img-polaroid{src: @user.avatar_url}
+    =@user.full_name
+    %small.pull-right
+      %button.btn Edit
+%dl.well
+  %dt Förnamn
+  %dd= @user.first_name
+  %dt Smeknamn
+  %dd= @user.nickname
+  %dt Efternamn
+  %dd= @user.last_name
+  %dt Email
+  %dd= @user.email
+  %dt Adresser
+  %dd
+    -@user.addresses.each do |address|
+      %strong= address.type 
+      %address
+        = address.address
+        %br
+        #{address.zip} #{address.region}
+  %dt Program
+  %dd= @user.program
+  %dt Börja studera
+  %dd= @user.began_studies
+%h3
+  Meriter
+  %small.pull-right
+    %button.btn Ny
+%table.table
+  %thead
+    %tr
+      %th Från
+      %th Till
+      %th Händelse
+      %th
+      %th
+  %tbody
+    -@user.merits.each do |merit|
+      %tr
+        %td= merit.from
+        %td= merit.to
+        %td= merit.type
+        %td
+          %button.btn
+            %i.icon-edit.icon-white
+            Edit
+        %td
+          %button.btn.btn-danger.confirm{type: :submit}
+            %i.icon-trash.icon-white
+          -#
+            %form{method: :post, action: "/merit/#{merit.id}"}
+              %input{type: :hidden, name: :_method, value: :delete}
+              %button.btn.btn-danger.confirm{type: :submit}
+                %i.icon-trash.icon-white
+%h3
+  Fester
+%table.table
+  %thead
+    %tr
+      %th Datum
+      %th Fest
+      %th Bihang
+  %tbody
+    -#@user.attendances.each do |attendance|
+      %tr
+        %td= attendance.festivity.date
+        %td
+          %a{href: "/festivity/#{attendance.festivity.id}"}
+            = attendance.festivity.name
+        %td

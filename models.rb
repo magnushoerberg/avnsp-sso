@@ -1,19 +1,58 @@
 require 'bcrypt'
 require 'securerandom'
 require './helpers'
+module Hashable
+  def to_h
+    self.class.superclass.new(*self.values).each_pair.map do |k, v|
+      value = if v.is_a?(Array)
+                 v.map { |elem| elem.to_h }
+               elsif v.respond_to?(:to_h)
+                 v.to_h
+               else
+                 v
+               end
+      { k => value }
+    end.inject(&:merge)
+  end
+end
 AddressValues = Struct.new(:type, :address, :zip, :region)
-class Address < AddressValues; end
+class Address < AddressValues
+  include Hashable
+  def initialize(params)
+    params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
+    super(params[:type],
+          params[:address],
+          params[:zip],
+          params[:region])
+  end
+end
 PhoneValues = Struct.new(:type, :number)
-class Phone < PhoneValues; end
+class Phone < PhoneValues
+  include Hashable
+  def initialize(params)
+    params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
+    super(params[:type],
+          params[:number])
+  end
+end
 MeritValues = Struct.new(:type, :from, :to)
-class Merit < MeritValues; end
+class Merit < MeritValues
+  include Hashable
+  def initialize(params)
+    params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
+    super(params[:type],
+          params[:from],
+          params[:to])
+  end
+end
 
 UserValues = Struct.new(:username, :password_hash,
                         :old_password_hash, :email, :created_at, :uuid,
                         :first_name, :last_name, :nickname, :addresses,
-                        :phones, :merits, :contact)
+                        :phones, :merits, :contact, :program, :began_studies)
 class User < UserValues
   include BCrypt
+  include Hashable
   def initialize params
     params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
     params[:phones] = params[:phones].map {|p| Phone.new(p)}
@@ -31,21 +70,22 @@ class User < UserValues
           params[:addresses],
           params[:phones],
           params[:merits],
-          params[:contact])
+          params[:contact],
+          params[:program],
+          params[:began_studies])
     @_id = params[:_id]
     self.uuid = SecureRandom.uuid if params[:uuid].to_s.empty?
     self.password = params[:password] if params[:password]
   end
 
-  def to_h
-    super(*self.values).each_pair.map do |k, v|
-      value = v.respond_to?(:to_h) ? v.to_h : v
-      { k => value }
-    end.inject(&:merge)
+  def full_name
+    [first_name, nickname, last_name].compact.join(' ')
   end
+
   def _id
     @_id
   end
+
   def password
     @password ||= Password.new(password_hash)
   end
@@ -73,19 +113,5 @@ class User < UserValues
       return dup == pwd_hashed[0...dup.length]
     end
     self.password == passwrd
-  end
-end
-
-class Login
-  attr_accessor :user, :return_url, :login_time
-
-  def initalize(params)
-    @user = params[:user]
-    @return_url = params[:return_url]
-    @login_time = params[:login_time]
-  end
-  def self.create(params)
-    login = self.new(params.merge(login_time: DateTime.now))
-    LoginRepository.insert(login)
   end
 end

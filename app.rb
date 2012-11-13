@@ -31,7 +31,7 @@ get '/reset' do
 end
 post '/reset' do
   user = UserRepository.find_one(email: params[:email])
-  p user.reset_password!
+  password = user.reset_password!
   UserRepository.save(user)
   redirect '/'
 end
@@ -42,6 +42,10 @@ post '/logout' do
   session[:email] = nil
   session[:uuid] = nil
   redirect url('/')
+end
+get '/continue' do
+  @user = UserRepository.find_one(uuid: session[:uuid])
+  haml :details
 end
 helpers do
   def protect! 

@@ -1,0 +1,74 @@
+.row
+  .span6
+    .page-header
+      %h1
+        -#if @user.has_avatar?
+          %img.img-rounded.img-polaroid{src: @user.avatar_url}
+        Ändra grunddata
+    %form.form-horizontal{method: :post}
+      %fieldset
+        .control-group
+          %label.control-label Förnamn
+          .controls
+            %input{type: :text, value: @user.first_name, name: :first_name}
+        .control-group
+          %label.control-label Smeknamn
+          .controls
+            %input{type: :text, value: @user.nickname, name: :nickname}
+        .control-group
+          %label.control-label Efternamn
+          .controls
+            %input{type: :text, value: @user.last_name, name: :last_name}
+        .control-group
+          %label.control-label Email
+          .controls
+            %input{type: :text, value: @user.email, name: :email}
+        .control-group
+          %label.control-label Började studera
+          .controls
+            %input{type: :number, value: @user.began_studies, name: :began_studies}
+        .control-group
+          %label.control-label Program
+          .controls
+            %select{name: :program}
+              %option{value: ''} Välj...
+              -Program.each_pair do |k,v|
+                %option{value: k, selected: k == @user.program.to_i}= v
+        .control-group
+          %label.control-label Adress
+          .controls
+            %input{type: :text, value: @user.began_studies, name: :began_studies}
+        .control-group
+          %label.control-label Postkod
+          .controls
+            %input{type: :text, value: @user.began_studies, name: :began_studies}
+        .control-group
+          %label.control-label Ort
+          .controls
+            %input{type: :text, value: @user.began_studies, name: :began_studies}
+        .controls
+          %button.btn.btn-success Spara
+          %a.btn.btn-danger Avbryt
+  .span6
+    .page-header
+      %h1
+        -#if @user.has_avatar?
+          %img.img-rounded.img-polaroid{src: @user.avatar_url}
+        Ändra lösenord
+    %form.form-horizontal{method: :post, action: "/change-password"}
+      %fieldset
+        .control-group
+          %label.control-label Nuvarande lösenord
+          .controls
+            %input{type: :password, name: :password}
+        .control-group
+          %label.control-label Nytt lösenord
+          .controls
+            %input{type: :password, name: :new_password}
+        .control-group
+          %label.control-label Bekräfta lösenord
+          .controls
+            %input{type: :password, name: :conf_password}
+        .form-actions
+          %button.btn.btn-success Spara
+          %button.btn.btn-danger{type: :reset} Avbryt

@@ -3,8 +3,18 @@
   %head
     %title
       AVNSP - SSO
+    %link{href: "/bootstrap.css", rel: :stylesheet}
   %body
-    - if error = flash[:error]
-      .alert.alert-error
-        %p= error
-    !=yield
+    .navbar.navbar-inverse
+      .navbar-inner
+        .container
+          %a.brand{href: '/'} AVNSP
+          %ul.nav.pull-right
+            %li
+              %a{href: "/logout"} Logga ut
+    .container
+      .row
+        - flash.each_pair do |k,v|
+          .alert{class: "alert-#{k}"}
+            = v
+        !=yield

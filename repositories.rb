@@ -20,6 +20,10 @@ class Repository
     entity = collection.find_one(params)
     klass.new(entity) if entity
   end
+  def self.update(selector, params)
+    collection.update(selector, params)
+    find_one(selector)
+  end
   def self.save(entity)
     collection.update({_id: entity._id}, entity.to_h)
   end

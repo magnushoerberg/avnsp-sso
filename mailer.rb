@@ -17,7 +17,7 @@ class Mailer
       subject subj
       html_part do
         content_type 'text/html; charset=UTF-8'
-        body msg
+        body body
       end
     end
   end

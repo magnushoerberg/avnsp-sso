@@ -2,6 +2,9 @@ require 'bcrypt'
 require 'securerandom'
 require './helpers'
 require './hashable'
+Program = {
+  1 => 'Y'
+}
 AddressValues = Struct.new(:type, :address, :zip, :region)
 class Address < AddressValues
   include Hashable
@@ -42,6 +45,9 @@ class User < UserValues
   include Hashable
   def initialize params
     params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
+    params[:merits] ||= []
+    params[:phones] ||= []
+    params[:addresses] ||= []
     params[:phones] = params[:phones].map {|p| Phone.new(p)}
     params[:merits] = params[:merits].map {|p| Merit.new(p)}
     params[:addresses] = params[:addresses].map {|p| Address.new(p)}
@@ -66,7 +72,14 @@ class User < UserValues
   end
 
   def full_name
-    [first_name, nickname, last_name].compact.join(' ')
+    if nickname.empty?
+      [first_name, last_name].join ' '
+    else
+      first_name + ' "' + nickname + '" ' + last_name
+    end
+  end
+  def program_s
+    Program[self.program.to_i]
   end
 
   def _id
@@ -81,6 +94,7 @@ class User < UserValues
     self.password_hash = password
   end
   def reset_password!
+    self.old_password_hash = nil
     new_password =  SecureRandom.hex(16)
     self.password = new_password
     new_password

@@ -5,8 +5,10 @@ require 'sinatra/reloader' if development?
 require 'haml'
 require './mailer'
 require 'sinatra/flash'
+require './repositories'
 
 set :haml, format: :html5, escape_html: true
+enable :sessions
 before do
   content_type :html, charset: 'utf-8'
 end
@@ -15,11 +17,23 @@ get '/' do
   sign_and_return(params[:return_url]) if session[:email]
   haml :login
 end
+get '/edit/:uuid' do |uuid|
+  @user = UserRepository.find_one(uuid: uuid)
+  haml :edit
+end
+post '/edit/:uuid' do |uuid|
+  selector = {uuid: uuid}
+  @user = UserRepository.update(selector, params)
+
+  flash[:success] = "Dina ändringar sparades!"
+  redirect '/'
+end
 
 post '/' do
-  username = params[:username].downcase
+  username = params["username"]
   user = UserRepository.find_one(username: username)
-  if user && user.authenticate(params[:password])
+  p user
+  if user && user.authenticate(params["password"])
     UserRepository.save(user)
     session[:uuid] = user.uuid
     session[:email] = user.email
@@ -35,10 +49,10 @@ get '/reset' do
   haml :reset
 end
 post '/reset' do
-  user = UserRepository.find_one(email: params[:email])
-  @password = user.reset_password!
-  Mailer.send(self.email, "Nytt lösenord", haml(:'mail/reset_password'))
-  UserRepository.save(user)
+  @user = UserRepository.find_one(email: params[:email])
+  @password = @user.reset_password!
+  Mailer.send(@user.email, "Nytt lösenord", haml(:'mail/reset_password'))
+  UserRepository.save(@user)
   redirect '/'
 end
 get '/logout' do
@@ -50,7 +64,7 @@ post '/logout' do
   redirect url('/')
 end
 
-get '/continue' do
+get '/details' do
   @user = UserRepository.find_one(uuid: session[:uuid])
   haml :details
 end
@@ -61,7 +75,7 @@ helpers do
   end
 
   def sign_and_return(return_url)
-    halt redirect url('/continue') if return_url.nil? or return_url.empty?
+    halt redirect url('/details') if return_url.nil? or return_url.empty?
     raise "SSO key is missing" unless ENV['SHARED_SSO_KEY']
     user = UserRepository.find_one(uuid: session[:uuid])
 

@@ -21,3 +21,4 @@ class Mailer
       end
     end
   end
+end

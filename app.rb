@@ -4,6 +4,7 @@ require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'haml'
 require './mailer'
+require 'sinatra/flash'
 
 set :haml, format: :html5, escape_html: true
 before do

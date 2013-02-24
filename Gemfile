@@ -6,9 +6,10 @@ gem 'mongo'
 gem 'bcrypt-ruby'
 gem 'bson_ext'
 gem 'mail'
-gem 'sinatra-contrib'
+gem 'sinatra-flash'
 
 group :development do
+  gem 'sinatra-contrib'
 end
 group :test do
   gem 'rspec'

@@ -4,7 +4,7 @@
     %title
       AVNSP - SSO
   %body
-    - if @error
+    - if error = flash[:error]
       .alert.alert-error
-        %p= @error
+        %p= error
     !=yield

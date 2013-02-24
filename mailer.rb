@@ -1,23 +1,23 @@
 require 'mail'
+
 Mail.defaults do
   delivery_method :smtp, { :address   => "smtp.sendgrid.net",
                            :port      => 587,
                            :domain    => "academian.se",
-                           :user_name => "yourusername@domain.com",
-                           :password  => "yourPassword",
+                           :user_name => ENV['SENDGRID_USERNAME'],
+                           :password  => ENV['SENDGRID_PASSWORD'],
                            :authentication => 'plain',
                            :enable_starttls_auto => true }
 end
-
-mail = Mail.deliver do
-  to 'yourRecipient@domain.com'
-  from 'Your Name <name@domain.com>'
-  subject 'This is the subject of your email'
-  text_part do
-    body 'Hello world in text'
+class Mailer
+  def self.send(to, subj, body)
+    Mail.deliver do
+      to to
+      from 'Academian <info@academian.se>'
+      subject subj
+      html_part do
+        content_type 'text/html; charset=UTF-8'
+        body msg
+      end
+    end
   end
-  html_part do
-    content_type 'text/html; charset=UTF-8'
-    body '<b>Hello world in HTML</b>'
-  end
-end

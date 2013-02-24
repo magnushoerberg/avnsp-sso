@@ -24,7 +24,11 @@ class Repository
     collection.update({_id: entity._id}, entity.to_h)
   end
   def self.insert(entity)
-    collection.insert(entity.to_h)
+    if entity.is_a? Hash
+      collection.insert(entity)
+    else
+      collection.insert(entity.to_h)
+    end
   end
   def self.collection
     DB.collection(klass.name)
@@ -32,4 +36,7 @@ class Repository
 end
 class UserRepository < Repository
   def self.klass; User end
+end
+class ConversionRepository < Repository
+  def self.klass; Conversion end
 end

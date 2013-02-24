@@ -3,6 +3,7 @@
 require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'haml'
+require './mailer'
 
 set :haml, format: :html5, escape_html: true
 before do
@@ -26,7 +27,7 @@ post '/' do
     session[:nickname] = user.nickname
     sign_and_return(params[:return_url])
   end
-  @error = "Användarnamn eller lösenord matchade inte"
+  flash.now[:error] = "Användarnamn eller lösenord matchade inte"
   haml :login
 end
 get '/reset' do
@@ -34,7 +35,8 @@ get '/reset' do
 end
 post '/reset' do
   user = UserRepository.find_one(email: params[:email])
-  password = user.reset_password!
+  @password = user.reset_password!
+  Mailer.send(self.email, "Nytt lösenord", haml(:'mail/reset_password'))
   UserRepository.save(user)
   redirect '/'
 end
@@ -69,7 +71,7 @@ helpers do
     nickname          = session[:nickname]
 
     time = Time.now.to_i
-    msg = [uuid, time, email, first_name, last_name, nickname].join(":")
+    msg = [uuid, time, email, first_name, last_name, nickname].map(&:to_s).join(":")
     sha1 = OpenSSL::Digest::Digest.new('sha1')
     token = OpenSSL::HMAC.hexdigest(sha1, ENV['SHARED_SSO_KEY'], msg)
     return_host = return_url.split('/')[0..2].join('/')

@@ -1,6 +1,7 @@
 require 'bundler/setup'
 require './repositories'
 require 'csv'
+class Conversion; end
 class Merits
   def initialize
     @merits = CSV.read('../../avnsp-bak/old_db_files/csv/merits.csv').map do |row|
@@ -67,7 +68,8 @@ namespace :seed do
         merits: merits.for(row[0]),
         phones: []
       )
-      UserRepository.insert(user)
+      id = UserRepository.insert(user)
+      ConversionRepository.insert(old_id: row[0], uuid: user.uuid)
     end
   end
 end

@@ -14,7 +14,7 @@ before do
 end
 
 get '/' do
-  sign_and_return(params[:return_url]) if session[:email]
+  sign_and_return(params[:return_url]) if session[:uuid]
   haml :login
 end
 get '/edit/:uuid' do |uuid|
@@ -87,13 +87,13 @@ post '/logout' do
 end
 
 get '/details' do
-  @user = UserRepository.find_one(email: session[:email])
+  @user = UserRepository.find_one(uuid: session[:uuid])
   haml :details
 end
 
 helpers do
   def protect! 
-    halt redirect url '/' unless session[:email]
+    halt redirect url '/' unless session[:uuid]
   end
 
   def sign_and_return(return_url)

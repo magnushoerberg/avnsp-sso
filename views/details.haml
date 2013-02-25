@@ -22,6 +22,12 @@
         = address.address
         %br
         ="#{address.zip} #{address.region}"
+  %dt Nummer
+  %dd
+    -@user.phones.each do |p|
+      %strong>= p.type 
+      =":"
+      %strong= p.number
   %dt Program
   %dd= @user.program_s
   %dt Börja studera

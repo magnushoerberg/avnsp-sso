@@ -55,6 +55,15 @@
             %label.control-label Ort
             .controls
               %input{type: :text, value: a.region, name: 'addresses_hash[]region'}
+        -(@user.phones | [Phone.new]).each do |a|
+          .control-group
+            %label.control-label Typ
+            .controls
+              %input{type: :text, value: a.type, name: 'phones_hash[]type'}
+          .control-group
+            %label.control-label Nummer
+            .controls
+              %input{type: :text, value: a.number, name: 'phones_hash[]number'}
         .controls
           %button.btn.btn-success Spara
           %a.btn.btn-danger Avbryt

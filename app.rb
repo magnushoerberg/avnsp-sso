@@ -22,9 +22,7 @@ get '/edit/:uuid' do |uuid|
   haml :edit
 end
 post '/edit/:uuid' do |uuid|
-  selector = {uuid: uuid}
-
-  @user = UserRepository.find_one(selector)
+  @user = UserRepository.find_one(uuid: uuid)
   @user.update params
   UserRepository.save(@user)
 

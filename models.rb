@@ -31,8 +31,9 @@ PhoneValues = Struct.new(:type, :number)
 class Phone < PhoneValues
   include Hashable
   include Updateable
-  def initialize(params)
+  def initialize(params = {})
     params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
+    params ||= {}
     super(params[:type],
           params[:number])
   end
@@ -52,7 +53,7 @@ end
 UserValues = Struct.new(:username, :password_hash,
                         :old_password_hash, :email, :created_at, :uuid,
                         :first_name, :last_name, :nickname, :addresses_hash,
-                        :phones, :merits, :contact, :program, :began_studies)
+                        :phones_hash, :merits_hash, :contact, :program, :began_studies)
 class User < UserValues
   include BCrypt
   include Hashable
@@ -67,12 +68,24 @@ class User < UserValues
       Address.new(a)
     end
   end
+  def merits
+    return [] if merits_hash.nil?
+    self.merits_hash.map do |a|
+      Merit.new(a)
+    end
+  end
+  def phones_hash= new_phones
+    new_phones.delete_if { |p| p.values.all? { |v| v.strip.empty? } }
+    super
+  end
+  def phones
+    return [] if phones_hash.nil?
+    self.phones_hash.map do |p|
+      Phone.new(p)
+    end
+  end
   def initialize params
     params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
-    params[:merits] ||= []
-    params[:phones] ||= []
-    params[:phones] = params[:phones].map {|p| Phone.new(p)}
-    params[:merits] = params[:merits].map {|p| Merit.new(p)}
     super(params[:username],
           params[:password_hash],
           params[:old_password_hash],
@@ -83,8 +96,8 @@ class User < UserValues
           params[:last_name],
           params[:nickname],
           params[:addresses_hash],
-          params[:phones],
-          params[:merits],
+          params[:phones_hash],
+          params[:merits_hash],
           params[:contact],
           params[:program],
           params[:began_studies])

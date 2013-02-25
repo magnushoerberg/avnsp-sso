@@ -32,7 +32,6 @@ end
 post '/' do
   username = params["username"]
   user = UserRepository.find_one(username: username)
-  p user
   if user && user.authenticate(params["password"])
     UserRepository.save(user)
     session[:uuid] = user.uuid
@@ -65,7 +64,8 @@ post '/logout' do
 end
 
 get '/details' do
-  @user = UserRepository.find_one(uuid: session[:uuid])
+  protect!
+  @user = UserRepository.find_one(email: session[:email])
   haml :details
 end
 

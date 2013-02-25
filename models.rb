@@ -107,7 +107,7 @@ class User < UserValues
   end
 
   def full_name
-    if nickname.empty?
+    if nickname.nil? || nickname.empty?
       [first_name, last_name].join ' '
     else
       first_name + ' "' + nickname + '" ' + last_name

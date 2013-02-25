@@ -2,12 +2,23 @@ require 'bcrypt'
 require 'securerandom'
 require './helpers'
 require './hashable'
+module Updateable
+  def update params
+    self.members.each do |k|
+      value = params.fetch(k.to_s, nil)
+      next unless value
+      p value
+      self.send(:"#{k}=", value)
+    end
+  end
+end
 Program = {
   1 => 'Y'
 }
 AddressValues = Struct.new(:type, :address, :zip, :region)
 class Address < AddressValues
   include Hashable
+  include Updateable
   def initialize(params)
     params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
     super(params[:type],
@@ -19,6 +30,7 @@ end
 PhoneValues = Struct.new(:type, :number)
 class Phone < PhoneValues
   include Hashable
+  include Updateable
   def initialize(params)
     params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
     super(params[:type],
@@ -28,6 +40,7 @@ end
 MeritValues = Struct.new(:type, :from, :to)
 class Merit < MeritValues
   include Hashable
+  include Updateable
   def initialize(params)
     params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
     super(params[:type],
@@ -38,19 +51,28 @@ end
 
 UserValues = Struct.new(:username, :password_hash,
                         :old_password_hash, :email, :created_at, :uuid,
-                        :first_name, :last_name, :nickname, :addresses,
+                        :first_name, :last_name, :nickname, :addresses_hash,
                         :phones, :merits, :contact, :program, :began_studies)
 class User < UserValues
   include BCrypt
   include Hashable
+  include Updateable
+  def addresses_hash= new_addresses
+    new_addresses.delete_if { |a| a.values.all? { |v| v.strip.empty? } }
+    super
+  end
+  def addresses
+    return [] if addresses_hash.nil?
+    self.addresses_hash.map do |a|
+      Address.new(a)
+    end
+  end
   def initialize params
     params = params.map { |k, v| {k.to_sym => v} }.inject(&:merge)
     params[:merits] ||= []
     params[:phones] ||= []
-    params[:addresses] ||= []
     params[:phones] = params[:phones].map {|p| Phone.new(p)}
     params[:merits] = params[:merits].map {|p| Merit.new(p)}
-    params[:addresses] = params[:addresses].map {|p| Address.new(p)}
     super(params[:username],
           params[:password_hash],
           params[:old_password_hash],
@@ -60,7 +82,7 @@ class User < UserValues
           params[:first_name],
           params[:last_name],
           params[:nickname],
-          params[:addresses],
+          params[:addresses_hash],
           params[:phones],
           params[:merits],
           params[:contact],
@@ -87,11 +109,11 @@ class User < UserValues
   end
 
   def password
-    @password ||= Password.new(password_hash)
+    @password ||= Password.new(self.password_hash)
   end
   def password=(new_password)
     @password = Password.create(new_password)
-    self.password_hash = password
+    self.password_hash = @password
   end
   def reset_password!
     self.old_password_hash = nil

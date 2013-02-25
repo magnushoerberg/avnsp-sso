@@ -23,15 +23,35 @@ get '/edit/:uuid' do |uuid|
 end
 post '/edit/:uuid' do |uuid|
   selector = {uuid: uuid}
-  @user = UserRepository.update(selector, params)
+
+  @user = UserRepository.find_one(selector)
+  @user.update params
+  UserRepository.save(@user)
 
   flash[:success] = "Dina ändringar sparades!"
   redirect '/'
 end
+post '/change-password' do
+  @user = UserRepository.find_one(uuid: params['uuid'])
+  pass = params.fetch 'new_password'
+  conf = params.fetch 'conf_password'
+  if !@user.authenticate(params['password'])
+    flash[:error] = "Fel gammalt lösenord..."
+  elsif pass != conf
+    flash[:error] = "Skriv samma lösenord..."
+  elsif pass.empty? || pass.nil?
+    flash[:error] = "Ditt nya lösenord får inte vara tomt"
+  else
+    @user.password = pass
+    UserRepository.save(@user)
+    flash[:success] = "Ditt lösenord är nu bytt!"
+  end
+  redirect back
+end
 
 post '/' do
   username = params["username"]
-  user = UserRepository.find_one(username: username)
+  user = UserRepository.find_one(email: username)
   if user && user.authenticate(params["password"])
     UserRepository.save(user)
     session[:uuid] = user.uuid
@@ -49,8 +69,12 @@ get '/reset' do
 end
 post '/reset' do
   @user = UserRepository.find_one(email: params[:email])
+  unless @user
+    flash[:error] = "Är du verkligen medlem?"
+    return redirect back
+  end
   @password = @user.reset_password!
-  Mailer.send(@user.email, "Nytt lösenord", haml(:'mail/reset_password'))
+  Mailer.send(@user.email, "Nytt lösenord", haml(:'mail/reset_password', layout: false))
   UserRepository.save(@user)
   redirect '/'
 end
@@ -64,7 +88,6 @@ post '/logout' do
 end
 
 get '/details' do
-  protect!
   @user = UserRepository.find_one(email: session[:email])
   haml :details
 end

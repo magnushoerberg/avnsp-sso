@@ -8,6 +8,10 @@
     %form.form-horizontal{method: :post}
       %fieldset
         .control-group
+          %label.control-label Användarnamn
+          .controls
+            %input{type: :text, value: @user.username, name: :username}
+        .control-group
           %label.control-label Förnamn
           .controls
             %input{type: :text, value: @user.first_name, name: :first_name}
@@ -34,18 +38,23 @@
               %option{value: ''} Välj...
               -Program.each_pair do |k,v|
                 %option{value: k, selected: k == @user.program.to_i}= v
-        .control-group
-          %label.control-label Adress
-          .controls
-            %input{type: :text, value: @user.began_studies, name: :began_studies}
-        .control-group
-          %label.control-label Postkod
-          .controls
-            %input{type: :text, value: @user.began_studies, name: :began_studies}
-        .control-group
-          %label.control-label Ort
-          .controls
-            %input{type: :text, value: @user.began_studies, name: :began_studies}
+        -(@user.addresses | [Address.new(typ: nil)]).each do |a|
+          .control-group
+            %label.control-label Typ
+            .controls
+              %input{type: :text, value: a.type, name: 'addresses_hash[]type'}
+          .control-group
+            %label.control-label Adress
+            .controls
+              %input{type: :text, value: a.address, name: 'addresses_hash[]address'}
+          .control-group
+            %label.control-label Postkod
+            .controls
+              %input{type: :text, value: a.zip, name: 'addresses_hash[]zip'}
+          .control-group
+            %label.control-label Ort
+            .controls
+              %input{type: :text, value: a.region, name: 'addresses_hash[]region'}
         .controls
           %button.btn.btn-success Spara
           %a.btn.btn-danger Avbryt
@@ -58,6 +67,7 @@
     %form.form-horizontal{method: :post, action: "/change-password"}
       %fieldset
         .control-group
+          %input{type: :hidden, name: :uuid, value: @user.uuid}
           %label.control-label Nuvarande lösenord
           .controls
             %input{type: :password, name: :password}
@@ -69,6 +79,6 @@
           %label.control-label Bekräfta lösenord
           .controls
             %input{type: :password, name: :conf_password}
-        .form-actions
+        .controls
           %button.btn.btn-success Spara
           %button.btn.btn-danger{type: :reset} Avbryt

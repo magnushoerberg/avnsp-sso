@@ -49,7 +49,8 @@ end
 
 post '/' do
   username = params["username"]
-  user = UserRepository.find_one(email: username)
+  user = UserRepository.find_one(username: username)
+  user ||= UserRepository.find_one(email: username)
   if user && user.authenticate(params["password"])
     UserRepository.save(user)
     session[:uuid] = user.uuid
